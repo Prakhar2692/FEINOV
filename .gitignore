@@ -1,0 +1,9 @@
+# Ignore all compiled DLL files anywhere in the project
+*.dll
+
+# Ignore any folder named Debug (case-insensitive option included)
+[Dd]ebug/
+
+# Standard .NET build directories (often containing Debug configurations)
+bin/
+obj/
