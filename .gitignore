@@ -1,0 +1,12 @@
+# Ignore all compiled DLL files anywhere in the project
+*.dll
+*.DS_Store
+
+# Ignore any folder named Debug (case-insensitive option included)
+[Dd]ebug/
+
+# Standard .NET build directories (often containing Debug configurations)
+bin/
+obj/
+Feinov.Infrastructure/.DS_Store
+Feinov.API/.DS_Store
