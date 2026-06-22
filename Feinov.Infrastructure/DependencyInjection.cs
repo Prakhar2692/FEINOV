@@ -1,5 +1,5 @@
 using Feinov.Application.Common.Interfaces;
-using Feinov.Infrastructure.Persistence;
+using Feinov.Infrastructure.Models;
 using Feinov.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -13,12 +13,13 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(
+        services.AddDbContext<Context>(options =>
+            options.UseNpgsql(
                 configuration.GetConnectionString("DefaultConnection"),
-                builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+                builder => builder.MigrationsAssembly(typeof(DependencyInjection).Assembly.FullName)));
 
-        services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+        services.AddScoped<DbContext>(provider => provider.GetRequiredService<Context>());
+        services.AddScoped<IDatabaseHealthService, DatabaseHealthService>();
         services.AddSingleton<IDateTimeService, DateTimeService>();
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
