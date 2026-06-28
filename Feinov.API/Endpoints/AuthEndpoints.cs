@@ -1,4 +1,5 @@
 using Feinov.Application.Features.Auth.SendOtp;
+using Feinov.Application.Features.Auth.VerifyOtp;
 using MediatR;
 
 namespace Feinov.API.Endpoints;

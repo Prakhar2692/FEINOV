@@ -66,6 +66,36 @@ public class OTPService(Context dbContext, IDateTimeService dateTimeService) : I
         }
     }
 
+    public async Task<bool> ValidateAndConsumeOtpAsync(
+        string mobileNumber,
+        string otpCode,
+        CancellationToken cancellationToken = default)
+    {
+        var now = dateTimeService.UtcNow.UtcDateTime;
+
+        try
+        {
+            var otpTransaction = await dbContext.OtpTransactions
+                .FirstOrDefaultAsync(
+                    x => x.MobileNumber == mobileNumber &&
+                         x.OtpCode == otpCode &&
+                         !x.IsUsed &&
+                         x.ExpiresAt > now,
+                    cancellationToken: cancellationToken);
+
+            if (otpTransaction == null)
+                return false;
+
+            otpTransaction.IsUsed = true;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public async Task<bool> MarkOtpAsUsedAsync(
         Guid otpTransactionId,
         CancellationToken cancellationToken = default)

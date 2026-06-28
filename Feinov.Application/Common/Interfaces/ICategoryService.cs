@@ -9,5 +9,6 @@ public interface ICategoryService
 
     Task<bool> CategoryIdExistsAsync(Guid categoryId, CancellationToken cancellationToken = default);
     Task<bool> SubcategoryNameExistsAsync(Guid categoryId, string subcategoryName, CancellationToken cancellationToken = default);
+    Task<bool> SubcategoryIdExistsAsync(Guid subcategoryId, CancellationToken cancellationToken = default);
     Task<SubcategoryDto> CreateSubcategoryAsync(Guid categoryId, string subcategoryName, string? description, CancellationToken cancellationToken = default);
 }

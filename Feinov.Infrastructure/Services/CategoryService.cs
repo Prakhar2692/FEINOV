@@ -32,6 +32,9 @@ public class CategoryService(Context dbContext) : ICategoryService
     public async Task<bool> SubcategoryNameExistsAsync(Guid categoryId, string subcategoryName, CancellationToken cancellationToken = default)
         => await dbContext.Subcategories.AnyAsync(x => x.CategoryId == categoryId && x.SubcategoryName == subcategoryName, cancellationToken);
 
+    public async Task<bool> SubcategoryIdExistsAsync(Guid subcategoryId, CancellationToken cancellationToken = default)
+        => await dbContext.Subcategories.AnyAsync(x => x.SubcategoryId == subcategoryId, cancellationToken);
+
     public async Task<SubcategoryDto> CreateSubcategoryAsync(Guid categoryId, string subcategoryName, string? description, CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;

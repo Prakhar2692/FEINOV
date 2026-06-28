@@ -1,5 +1,6 @@
 using Feinov.Application.Common.Interfaces;
 using Feinov.Infrastructure.Models;
+using Feinov.Infrastructure.Repositories;
 using Feinov.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -25,6 +26,12 @@ public static class DependencyInjection
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
+        services.AddScoped<IProductVariantService, ProductVariantService>();
+        services.AddScoped<IProductImageService, ProductImageService>();
+        services.AddScoped<IInventoryService, InventoryService>();
 
         return services;
     }

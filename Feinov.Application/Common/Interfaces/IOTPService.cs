@@ -13,6 +13,11 @@ public interface IOTPService
         string otpCode,
         CancellationToken cancellationToken = default);
 
+    Task<bool> ValidateAndConsumeOtpAsync(
+        string mobileNumber,
+        string otpCode,
+        CancellationToken cancellationToken = default);
+
     Task<bool> MarkOtpAsUsedAsync(
         Guid otpTransactionId,
         CancellationToken cancellationToken = default);
