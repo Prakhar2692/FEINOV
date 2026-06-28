@@ -20,8 +20,11 @@ public static class DependencyInjection
 
         services.AddScoped<DbContext>(provider => provider.GetRequiredService<Context>());
         services.AddScoped<IDatabaseHealthService, DatabaseHealthService>();
+        services.AddScoped<IOTPService, OTPService>();
         services.AddSingleton<IDateTimeService, DateTimeService>();
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<ICategoryService, CategoryService>();
 
         return services;
     }

@@ -20,5 +20,7 @@ app.UseMiddleware<GlobalExceptionHandler>();
 app.UseHttpsRedirection();
 
 app.MapHealthEndpoints();
+app.MapAuthEndpoints();
+app.MapAdminEndpoints();
 
 app.Run();
