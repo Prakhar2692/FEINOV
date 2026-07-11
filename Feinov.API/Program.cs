@@ -23,5 +23,6 @@ app.MapHealthEndpoints();
 app.MapAuthEndpoints();
 app.MapAdminEndpoints();
 app.MapCatalogEndpoints();
+app.MapCartEndpoint();
 
 app.Run();
