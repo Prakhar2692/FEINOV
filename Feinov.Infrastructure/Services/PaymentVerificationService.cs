@@ -34,33 +34,52 @@ public sealed class PaymentVerificationService(Context dbContext, IConfiguration
         if (order == null)
             throw new InvalidOperationException("Order not found for the supplied payment transaction.");
 
-        var expectedSignature = CreateSignature(order.OrderNumber, razorpayPaymentId, razorpayOrderId, keySecret);
-        if (!string.Equals(expectedSignature, razorpaySignature, StringComparison.Ordinal))
-        {
-            paymentTransaction.TransactionStatus = "Failed";
-            paymentTransaction.ProviderPaymentId = razorpayPaymentId;
-            paymentTransaction.ProviderSignature = razorpaySignature;
-            paymentTransaction.UpdatedDate = DateTime.UtcNow;
-            paymentTransaction.GatewayResponse = "Signature verification failed.";
-
-            order.OrderStatus = "PaymentFailed";
-            order.PaymentStatus = "Failed";
-            order.UpdatedDate = DateTime.UtcNow;
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-
-            return new VerifyPaymentResult(order.OrderId, order.OrderNumber, order.OrderStatus, order.PaymentStatus, false, "Razorpay signature verification failed.");
-        }
-
         var transaction = await dbContext.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
 
         try
         {
-            var orderItems = await dbContext.OrderItems
+            var expectedSignature = CreateSignature(razorpayOrderId, razorpayPaymentId, keySecret);
+            if (!string.Equals(expectedSignature, razorpaySignature, StringComparison.Ordinal))
+            {
+                var orderItems = await dbContext.OrderItems
+                    .Where(x => x.OrderId == order.OrderId)
+                    .ToListAsync(cancellationToken);
+
+                foreach (var orderItem in orderItems)
+                {
+                    var inventory = await dbContext.Inventories
+                        .FromSqlInterpolated($"SELECT * FROM inventory WHERE variant_id = {orderItem.VariantId} FOR UPDATE")
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (inventory == null)
+                        throw new InvalidOperationException($"Inventory record does not exist for variant '{orderItem.VariantId}'.");
+
+                    inventory.ReservedStock = Math.Max(0, inventory.ReservedStock - orderItem.Quantity);
+                    inventory.AvailableStock = Math.Max(0, inventory.TotalStock - inventory.ReservedStock);
+                    inventory.LastStockUpdated = DateTime.UtcNow;
+                }
+
+                paymentTransaction.TransactionStatus = "Failed";
+                paymentTransaction.ProviderPaymentId = razorpayPaymentId;
+                paymentTransaction.ProviderSignature = razorpaySignature;
+                paymentTransaction.UpdatedDate = DateTime.UtcNow;
+                paymentTransaction.GatewayResponse = "Signature verification failed.";
+
+                order.OrderStatus = "PaymentFailed";
+                order.PaymentStatus = "Failed";
+                order.UpdatedDate = DateTime.UtcNow;
+
+                await dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+
+                return new VerifyPaymentResult(order.OrderId, order.OrderNumber, order.OrderStatus, order.PaymentStatus, false, "Razorpay signature verification failed.");
+            }
+
+            var successfulOrderItems = await dbContext.OrderItems
                 .Where(x => x.OrderId == order.OrderId)
                 .ToListAsync(cancellationToken);
 
-            foreach (var orderItem in orderItems)
+            foreach (var orderItem in successfulOrderItems)
             {
                 var inventory = await dbContext.Inventories
                     .FromSqlInterpolated($"SELECT * FROM inventory WHERE variant_id = {orderItem.VariantId} FOR UPDATE")
@@ -101,9 +120,9 @@ public sealed class PaymentVerificationService(Context dbContext, IConfiguration
         }
     }
 
-    private static string CreateSignature(string orderNumber, string paymentId, string orderId, string secret)
+    private static string CreateSignature(string razorpayOrderId, string razorpayPaymentId, string secret)
     {
-        var payload = $"{orderNumber}|{paymentId}|{orderId}";
+        var payload = $"{razorpayOrderId}|{razorpayPaymentId}";
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
         return Convert.ToHexString(hash).ToLowerInvariant();
