@@ -22,5 +22,10 @@ app.UseHttpsRedirection();
 app.MapHealthEndpoints();
 app.MapAuthEndpoints();
 app.MapAdminEndpoints();
+app.MapCatalogEndpoints();
+app.MapCartEndpoint();
+app.MapOrderEndpoint();
+app.MapCheckoutEnpoint();
+app.MapPaymentEndpoint();
 
 app.Run();

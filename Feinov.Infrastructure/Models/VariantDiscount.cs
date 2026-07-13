@@ -28,4 +28,7 @@ public partial class VariantDiscount
 
     [Column("is_active")]
     public bool? IsActive { get; set; }
+
+    [ForeignKey("VariantId")]
+    public virtual ProductVariant Variant { get; set; } = null!;
 }

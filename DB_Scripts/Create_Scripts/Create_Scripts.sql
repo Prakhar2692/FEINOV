@@ -171,6 +171,20 @@ CREATE TABLE variant_discounts
 
     is_active BOOLEAN DEFAULT TRUE
 );
+
+CREATE TABLE variant_discounts
+(
+    discount_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    variant_id UUID NOT NULL,
+    discount_percentage NUMERIC(5,2),
+    start_date TIMESTAMP,
+    end_date TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+    CONSTRAINT fk_variant_discounts_variant
+        FOREIGN KEY (variant_id)
+        REFERENCES product_variants(variant_id)
+        ON DELETE CASCADE
+);
 ---------------------------------------------------------------------------------------
 
 CREATE TABLE inventory

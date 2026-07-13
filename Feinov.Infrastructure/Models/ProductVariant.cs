@@ -64,4 +64,7 @@ public partial class ProductVariant
     [ForeignKey("ProductId")]
     [InverseProperty("ProductVariants")]
     public virtual Product Product { get; set; } = null!;
+
+    [InverseProperty("Variant")]
+    public virtual ICollection<VariantDiscount> VariantDiscounts { get; set; } = new List<VariantDiscount>();
 }

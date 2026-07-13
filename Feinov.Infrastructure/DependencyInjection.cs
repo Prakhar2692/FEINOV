@@ -20,11 +20,13 @@ public static class DependencyInjection
                 builder => builder.MigrationsAssembly(typeof(DependencyInjection).Assembly.FullName)));
 
         services.AddScoped<DbContext>(provider => provider.GetRequiredService<Context>());
+        services.AddHttpClient();
         services.AddScoped<IDatabaseHealthService, DatabaseHealthService>();
         services.AddScoped<IOTPService, OTPService>();
         services.AddSingleton<IDateTimeService, DateTimeService>();
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<IRazorpayService, RazorpayService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IProductService, ProductService>();
@@ -32,6 +34,10 @@ public static class DependencyInjection
         services.AddScoped<IProductVariantService, ProductVariantService>();
         services.AddScoped<IProductImageService, ProductImageService>();
         services.AddScoped<IInventoryService, InventoryService>();
+        services.AddScoped<ICatalogService, CatalogService>();
+        services.AddScoped<ICartService, CartService>();
+        services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<IPaymentVerificationService, PaymentVerificationService>();
 
         return services;
     }
