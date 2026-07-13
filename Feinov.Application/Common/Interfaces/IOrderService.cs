@@ -16,4 +16,10 @@ public interface IOrderService
         string country,
         string? notes,
         CancellationToken cancellationToken = default);
+
+    Task<PagedCustomerOrderHistoryResult> GetCustomerOrderHistoryAsync(
+        Guid userId,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default);
 }

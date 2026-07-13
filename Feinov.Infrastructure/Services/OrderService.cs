@@ -9,6 +9,45 @@ namespace Feinov.Infrastructure.Services;
 
 public sealed class OrderService(Context dbContext, IRazorpayService razorpayService) : IOrderService
 {
+    public async Task<PagedCustomerOrderHistoryResult> GetCustomerOrderHistoryAsync(
+        Guid userId,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        if (pageNumber < 1)
+            throw new ArgumentOutOfRangeException(nameof(pageNumber), "Page number must be at least 1.");
+
+        if (pageSize < 1)
+            throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be at least 1.");
+
+        var userExists = await dbContext.Users.AnyAsync(x => x.UserId == userId && x.IsActive, cancellationToken);
+        if (!userExists)
+            throw new InvalidOperationException("User does not exist.");
+
+        var query = dbContext.Orders
+            .AsNoTracking()
+            .Where(x => x.CustomerId == userId)
+            .OrderByDescending(x => x.CreatedDate)
+            .Select(x => new CustomerOrderHistoryItem(
+                x.OrderId,
+                x.OrderNumber,
+                x.OrderStatus,
+                x.PaymentStatus,
+                x.TotalAmount,
+                x.CreatedDate));
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return new PagedCustomerOrderHistoryResult(items, pageNumber, pageSize, totalCount, totalPages);
+    }
+
     public async Task<CreateOrderResult> CreateAsync(
         Guid userId,
         string fullName,
