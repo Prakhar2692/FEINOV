@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddSingleton<IDateTimeService, DateTimeService>();
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<IUserService, UserService>();
         services.AddScoped<IRazorpayService, RazorpayService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IProductRepository, ProductRepository>();

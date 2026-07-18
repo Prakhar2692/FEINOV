@@ -10,7 +10,7 @@ public static class AdminEndpoints
 {
     public static IEndpointRouteBuilder MapAdminEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/admin").WithTags("Admin");
+        var group = app.MapGroup("/api/admin").WithTags("Admin").RequireAuthorization("AdminPolicy");
 
         group.MapPost("/categories", CreateCategory)
             .WithName("CreateCategory")

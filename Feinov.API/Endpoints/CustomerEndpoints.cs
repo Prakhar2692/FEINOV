@@ -8,7 +8,7 @@ public static class CustomerEndpoints
 {
     public static IEndpointRouteBuilder MapCustomerEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/customers").WithTags("Customers");
+        var group = app.MapGroup("/api/customers").WithTags("Customers").RequireAuthorization("CustomerPolicy");
 
         group.MapPost("/addresses", AddCustomerAddress)
             .WithName("AddCustomerAddress")

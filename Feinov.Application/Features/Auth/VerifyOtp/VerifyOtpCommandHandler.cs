@@ -6,7 +6,7 @@ namespace Feinov.Application.Features.Auth.VerifyOtp;
 public sealed class VerifyOtpCommandHandler(
     IOTPService otpService,
     IJwtTokenService jwtTokenService,
-    IDateTimeService dateTimeService)
+    IUserService userService)
     : IRequestHandler<VerifyOtpCommand, VerifyOtpResponse>
 {
     public async Task<VerifyOtpResponse> Handle(VerifyOtpCommand request, CancellationToken cancellationToken)
@@ -16,10 +16,9 @@ public sealed class VerifyOtpCommandHandler(
         if (!valid)
             return new VerifyOtpResponse(false, "Invalid or expired OTP.", null, null);
 
-        // For now, create a transient user identity (persistence handled elsewhere)
-        var userId = Guid.NewGuid();
-        var token = jwtTokenService.GenerateToken(userId, request.MobileNumber, null);
-        var userDto = new UserDto(userId, request.MobileNumber, null);
+        var authenticatedUser = await userService.GetOrCreateUserAsync(request.MobileNumber, cancellationToken);
+        var token = jwtTokenService.GenerateToken(authenticatedUser.UserId, authenticatedUser.MobileNumber, authenticatedUser.Name, authenticatedUser.Role);
+        var userDto = new UserDto(authenticatedUser.UserId, authenticatedUser.MobileNumber, authenticatedUser.Name);
         return new VerifyOtpResponse(true, "OTP verified.", token, userDto);
     }
 }
