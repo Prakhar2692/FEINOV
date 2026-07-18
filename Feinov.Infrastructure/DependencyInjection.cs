@@ -35,8 +35,12 @@ public static class DependencyInjection
         services.AddScoped<IProductImageService, ProductImageService>();
         services.AddScoped<IInventoryService, InventoryService>();
         services.AddScoped<ICatalogService, CatalogService>();
+        services.AddScoped<IProductReviewService, ProductReviewService>();
+        services.AddScoped<IOrderExpirationService, OrderExpirationService>();
         services.AddScoped<ICartService, CartService>();
         services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<IAdminOrderService, AdminOrderService>();
+        services.AddScoped<ICustomerAddressService, CustomerAddressService>();
         services.AddScoped<IPaymentVerificationService, PaymentVerificationService>();
 
         return services;

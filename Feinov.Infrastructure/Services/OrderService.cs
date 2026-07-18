@@ -48,6 +48,67 @@ public sealed class OrderService(Context dbContext, IRazorpayService razorpaySer
         return new PagedCustomerOrderHistoryResult(items, pageNumber, pageSize, totalCount, totalPages);
     }
 
+    public async Task<CustomerOrderDetailsResult> GetCustomerOrderDetailsAsync(
+        Guid userId,
+        Guid orderId,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId == Guid.Empty)
+            throw new ArgumentOutOfRangeException(nameof(userId), "User id is required.");
+
+        if (orderId == Guid.Empty)
+            throw new ArgumentOutOfRangeException(nameof(orderId), "Order id is required.");
+
+        var userExists = await dbContext.Users.AnyAsync(x => x.UserId == userId && x.IsActive, cancellationToken);
+        if (!userExists)
+            throw new InvalidOperationException("User does not exist.");
+
+        var order = await dbContext.Orders
+            .AsNoTracking()
+            .Where(x => x.CustomerId == userId && x.OrderId == orderId)
+            .Include(x => x.OrderAddress)
+            .Include(x => x.OrderItems)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (order == null)
+            throw new InvalidOperationException("Order does not exist.");
+
+        if (order.OrderAddress == null)
+            throw new InvalidOperationException("Shipping address is unavailable.");
+
+        var items = order.OrderItems
+            .Select(x => new CustomerOrderDetailsItem(
+                x.OrderItemId,
+                x.ProductName,
+                x.VariantName,
+                x.Sku,
+                x.Quantity,
+                x.UnitPrice,
+                x.DiscountAmount,
+                x.TotalAmount))
+            .ToList();
+
+        var shippingAddress = new CustomerOrderShippingAddress(
+            order.OrderAddress.FullName,
+            order.OrderAddress.PhoneNumber,
+            order.OrderAddress.AddressLine1,
+            order.OrderAddress.AddressLine2,
+            order.OrderAddress.City,
+            order.OrderAddress.State,
+            order.OrderAddress.PostalCode,
+            order.OrderAddress.Country);
+
+        return new CustomerOrderDetailsResult(
+            order.OrderId,
+            order.OrderNumber,
+            order.OrderStatus,
+            order.PaymentStatus,
+            order.TotalAmount,
+            order.CreatedDate,
+            shippingAddress,
+            items);
+    }
+
     public async Task<CreateOrderResult> CreateAsync(
         Guid userId,
         string fullName,

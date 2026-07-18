@@ -22,4 +22,9 @@ public interface IOrderService
         int pageNumber,
         int pageSize,
         CancellationToken cancellationToken = default);
+
+    Task<CustomerOrderDetailsResult> GetCustomerOrderDetailsAsync(
+        Guid userId,
+        Guid orderId,
+        CancellationToken cancellationToken = default);
 }
