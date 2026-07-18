@@ -25,20 +25,25 @@ public class JwtTokenService : IJwtTokenService
 
     public string GenerateToken(Guid userId, string mobileNumber, string? name, string? role = null)
     {
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
             new Claim(JwtRegisteredClaimNames.UniqueName, mobileNumber),
             new Claim(JwtRegisteredClaimNames.Name, name ?? string.Empty),
             new Claim("userId", userId.ToString()),
-            new Claim("mobileNumber", mobileNumber),
-            new Claim("role", role ?? string.Empty)
+            new Claim("mobileNumber", mobileNumber)
         };
+
+        if (!string.IsNullOrWhiteSpace(role))
+        {
+            claims.Add(new Claim("role", role));
+        }
+
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var token = new JwtSecurityToken(
-            issuer: "feinov",
-            audience: "feinov",
+            issuer: _jwtIssuer,
+            audience: _jwtAudience,
             claims: claims,
             expires: DateTime.UtcNow.AddMinutes(_jwtExpiryMinutes),
             signingCredentials: creds);

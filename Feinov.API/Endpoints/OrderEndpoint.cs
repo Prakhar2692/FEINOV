@@ -19,8 +19,29 @@ public static IEndpointRouteBuilder MapOrderEndpoint(this IEndpointRouteBuilder 
             .WithName("GetOrderHistory")
             .WithSummary("Gets order history from the logged-in user's cart and persist a delivery snapshot")
             .WithOpenApi();
+
+        group.MapGet("/{orderId:guid}", GetOrderDetails)
+            .WithName("GetOrderDetails")
+            .WithSummary("Gets a single customer order with items, payment status, and shipping address")
+            .WithOpenApi();
+
         return app;
     }
+private static async Task<IResult> GetOrderDetails(Guid orderId, Guid userId, ISender sender, CancellationToken cancellationToken)
+    {
+        var query = new GetCustomerOrderDetailsQuery(userId, orderId);
+
+        try
+        {
+            var result = await sender.Send(query, cancellationToken);
+            return Results.Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
 private static async Task<IResult> CreateOrder(CreateOrderRequest request, ISender sender, CancellationToken cancellationToken)
     {
         var command = new CreateOrderCommand(

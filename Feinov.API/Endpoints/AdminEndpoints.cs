@@ -1,5 +1,6 @@
 using Feinov.Application.Features.Admin.Categories;
 using Feinov.Application.Features.Admin.Inventory;
+using Feinov.Application.Features.Admin.Orders;
 using Feinov.Application.Features.Admin.Products;
 using MediatR;
 
@@ -9,7 +10,7 @@ public static class AdminEndpoints
 {
     public static IEndpointRouteBuilder MapAdminEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/admin").WithTags("Admin");
+        var group = app.MapGroup("/api/admin").WithTags("Admin").RequireAuthorization("AdminPolicy");
 
         group.MapPost("/categories", CreateCategory)
             .WithName("CreateCategory")
@@ -44,6 +45,16 @@ public static class AdminEndpoints
         group.MapGet("/inventory", GetInventoryList)
             .WithName("GetInventoryList")
             .WithSummary("List inventory records with paging")
+            .WithOpenApi();
+
+        group.MapGet("/orders", GetAdminOrderList)
+            .WithName("GetAdminOrderList")
+            .WithSummary("List orders with search, status filtering, and paging")
+            .WithOpenApi();
+
+        group.MapPut("/orders/{orderId:guid}/status", UpdateOrderStatus)
+            .WithName("UpdateOrderStatus")
+            .WithSummary("Update an order's status with transition validation")
             .WithOpenApi();
 
         return app;
@@ -144,6 +155,27 @@ public static class AdminEndpoints
         var result = await sender.Send(query, cancellationToken);
         return Results.Ok(result);
     }
+
+    private static async Task<IResult> GetAdminOrderList([AsParameters] AdminOrderListRequest request, ISender sender, CancellationToken cancellationToken)
+    {
+        var query = new GetAdminOrderListQuery(request.OrderNumber, request.Status, request.PageNumber, request.PageSize);
+        var result = await sender.Send(query, cancellationToken);
+        return Results.Ok(result);
+    }
+
+    private static async Task<IResult> UpdateOrderStatus(Guid orderId, UpdateOrderStatusRequest request, ISender sender, CancellationToken cancellationToken)
+    {
+        var command = new UpdateOrderStatusCommand(orderId, request.Status);
+        try
+        {
+            var result = await sender.Send(command, cancellationToken);
+            return Results.Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { success = false, message = ex.Message });
+        }
+    }
 }
 
 public sealed record CreateCategoryRequest(string CategoryName, string? Description);
@@ -157,3 +189,7 @@ public sealed record CreateProductVariantRequest(string Sku, string VariantName,
 public sealed record UpdateInventoryRequest(int TotalStock, int ReorderLevel);
 
 public sealed record InventoryListRequest(int PageNumber = 1, int PageSize = 20);
+
+public sealed record AdminOrderListRequest(string? OrderNumber = null, string? Status = null, int PageNumber = 1, int PageSize = 20);
+
+public sealed record UpdateOrderStatusRequest(string Status);

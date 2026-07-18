@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddSingleton<IDateTimeService, DateTimeService>();
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<IUserService, UserService>();
         services.AddScoped<IRazorpayService, RazorpayService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IProductRepository, ProductRepository>();
@@ -35,8 +36,12 @@ public static class DependencyInjection
         services.AddScoped<IProductImageService, ProductImageService>();
         services.AddScoped<IInventoryService, InventoryService>();
         services.AddScoped<ICatalogService, CatalogService>();
+        services.AddScoped<IProductReviewService, ProductReviewService>();
+        services.AddScoped<IOrderExpirationService, OrderExpirationService>();
         services.AddScoped<ICartService, CartService>();
         services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<IAdminOrderService, AdminOrderService>();
+        services.AddScoped<ICustomerAddressService, CustomerAddressService>();
         services.AddScoped<IPaymentVerificationService, PaymentVerificationService>();
 
         return services;
